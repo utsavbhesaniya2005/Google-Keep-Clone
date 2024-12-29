@@ -4,6 +4,11 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { alpha, InputBase, styled } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { useState } from 'react';
+import Button from '@mui/material/Button';
+import { Link, useNavigate } from 'react-router';
+import { useDispatch, useSelector } from 'react-redux';
+import { userLogoutAsync } from '../../services/actions/AuthAction';
+import { Nav } from 'react-bootstrap';
 
 const navigation = [
     { name: 'Google Keep', href: '#' },
@@ -58,6 +63,16 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 // eslint-disable-next-line react/prop-types
 const Header = ({ collapsed, toggleSidebar }) => {
 
+    const { isSignIn } = useSelector(state => state.AuthReducer);
+
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        dispatch(userLogoutAsync());
+        navigate('/signIn');
+    }
+
     return (
         <>
             <Disclosure as="nav" className="bg-white-800 fixed top-0 w-full z-10 shadow-xl">
@@ -87,42 +102,25 @@ const Header = ({ collapsed, toggleSidebar }) => {
                                 />
                             </Search>
                         </div>
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0 ms-auto">
-
+                        <div className="inset-y-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0 ms-auto">
                             <Menu as="div" className="relative ml-3">
                                 <div>
-                                    <MenuButton className="relative flex rounded-full text-sm ">
-                                        <span className="absolute -inset-1.5" />
-                                        <img
-                                            alt="Logo"
-                                            src="../src/assets/images/google-keep.png"
-                                            className="size-12 rounded"
-                                        />
-                                    </MenuButton>
+                                    <img alt="Logo" src="../src/assets/images/google-keep.png" className="size-12 rounded" />
                                 </div>
                             </Menu>
+                            {
+                                isSignIn ?  
+                                <Button onClick={handleLogout} className='btn1 ms-4'>Sign Out</Button>
+                                :
+                                <Link to='/signIn'>
+                                    <Button className='btn1 ms-4'>Sign In</Button>
+                                </Link>
+                            }
+                            
                         </div>
                     </div>
                 </div>
 
-                <DisclosurePanel className="sm:hidden">
-                    <div className="space-y-1 px-2 pb-3 pt-2">
-                        {navigation.map((item) => (
-                            <DisclosureButton
-                                key={item.name}
-                                as="a"
-                                href={item.href}
-                                aria-current={item.current ? 'page' : undefined}
-                                className={classNames(
-                                    item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                                    'block rounded-md px-3 py-2 text-base font-medium',
-                                )}
-                            >
-                                {item.name}
-                            </DisclosureButton>
-                        ))}
-                    </div>
-                </DisclosurePanel>
             </Disclosure>
         </>
     )

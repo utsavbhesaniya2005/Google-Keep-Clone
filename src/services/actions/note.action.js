@@ -1,5 +1,22 @@
-import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore"; 
+import { collection, addDoc, getDocs, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore"; 
 import { db } from "../../firebaseConfig";
+
+
+export const getDataSuc = (data) => {
+
+    return {
+        type : 'GET_DATA_SUC',
+        payload : data
+    }
+}
+
+export const getDataRej = (msg) => {
+    
+    return {
+        type : 'GET_DATA_REJ',
+        payload : msg
+    }
+}
 
 export const addNotesSuc = (data) => {
 
@@ -17,20 +34,64 @@ export const addNotesRej = (msg) => {
     }
 }
 
-export const getDataSuc = (data) => {
+export const findNoteSuc = (note) => {
 
-    return {
-        type : 'GET_DATA_SUC',
-        payload : data
+    return{
+        type : 'FIND_NOTES_SUC',
+        payload : note
     }
 }
 
-export const getDataRej = (msg) => {
+export const findNoteRej = (msg) => {
 
-    return {
-        type : 'GET_DATA_REJ',
+    return{
+        type : 'FIND_NOTES_REJ',
         payload : msg
     }
+}
+
+export const updateNoteSuc = (note) => {
+
+    return{
+        type : 'UPDATE_NOTE_SUC',
+        payload : note
+    }
+}
+
+export const updateNoteRej = (msg) => {
+
+    return{
+        type : 'UPDATE_NOTE_REJ',
+        payload : msg
+    }
+}
+
+export const getNotesAsync = () => {
+    
+    return async dispatch => {
+        
+        try{
+            
+            const note = await getDocs(collection(db, 'notes'));
+            
+            let notes = [];
+            
+            note.forEach((doc) => {
+                
+                let getdata = doc.data();
+                getdata.id = doc.id;
+                notes.push(getdata);
+            })
+            
+            dispatch(getDataSuc(notes));
+            
+        }catch(err){
+            
+            dispatch(getDataRej(err.code))
+        }
+        
+    }
+    
 }
 
 export const addNotesAsync = (note) => {
@@ -62,32 +123,42 @@ export const addNotesAsync = (note) => {
     }
 }
 
-export const getNotesAsync = () => {
+export const findNoteAsync = (id) => {
 
     return async dispatch => {
 
         try{
 
-            const note = await getDocs(collection(db, 'notes'));
+            let findNote = await getDoc(doc(db, 'notes', `${id}`));
 
-            let notes = [];
+            let getNote = findNote.data();  
+            getNote.id = findNote.id;
             
-            note.forEach((doc) => {
-                
-                let getdata = doc.data();
-                getdata.id = doc.id;
-                notes.push(getdata);
-            })
-            
-            dispatch(getDataSuc(notes));
+            dispatch(findNoteSuc(getNote))
 
         }catch(err){
 
-            dispatch(getDataRej(err.code))
+            dispatch(findNoteRej(err.code))
+        }
+    }
+}
+
+export const updateNoteAsync = (note) => {
+
+    return async dispatch => {
+
+        try{
+
+            let updateNote = await setDoc(doc(db, 'notes', `${note.id}`), note);
+
+            dispatch(updateNoteSuc(updateNote))
+
+        }catch(err){
+
+            dispatch(updateNoteRej(err.msg))
         }
 
     }
-
 }
 
 export const deleteNotesAsync = (id) => {

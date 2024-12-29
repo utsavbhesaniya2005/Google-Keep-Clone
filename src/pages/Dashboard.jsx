@@ -3,9 +3,34 @@ import { useEffect, useState } from "react";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
 import { useDispatch, useSelector } from 'react-redux';
-import { addNotesAsync, deleteNotesAsync, getNotesAsync } from '../services/actions/note.action';
+import { addNotesAsync, deleteNotesAsync, findNoteAsync, getNotesAsync, updateNoteAsync } from '../services/actions/note.action';
+import { useNavigate } from 'react-router';
 
 const Dashboard = () => {
+
+    const { notes, note } = useSelector(state => state.NoteReducer);
+    const { isSignIn } = useSelector(state => state.AuthReducer);
+
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    
+    const [isAddingNote, setIsAddingNote] = useState(false);
+
+    const [newNote, setNewNote] = useState({
+        id : '',
+        title: '',
+        desc: '',
+        tag : 'Professional',
+        bgColor : ''
+    });
+
+    const [editNote, setEditNote] = useState({
+        id : '',
+        title: '',
+        desc: '',
+        tag : 'Professional',
+        bgColor : ''
+    });
 
     const getBgColor = (tag) => {
         switch(tag)
@@ -36,22 +61,8 @@ const Dashboard = () => {
                 return '#ffffff'; 
         }
     };
-    
-    const [isAddingNote, setIsAddingNote] = useState(false);
-
-    const [newNote, setNewNote] = useState({
-        id : '',
-        title: '',
-        desc: '',
-        tag : 'Professional',
-        bgColor : ''
-    });
 
     const [collapsed, setCollapsed] = useState(false);
-    const { notes } = useSelector(state => state.NoteReducer);
-
-    const dispatch = useDispatch();
-
 
     const toggleSidebar = () => {
         setCollapsed((prev) => !prev);
@@ -60,7 +71,11 @@ const Dashboard = () => {
     const handleInput = (e) => {
         
         setNewNote({ ...newNote, [e.target.name] : e.target.value });
+    };
 
+    const handleEditInput = (e) => {
+        
+        setEditNote({ ...editNote, [e.target.name] : e.target.value });
     };
 
     const handleSubmit = () => {
@@ -79,14 +94,55 @@ const Dashboard = () => {
         setNewNote({ title : '' , desc : '' , tag : 'Professional' , bgColor : '' })
     };
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const handleUpdatedNote = () => {
+
+        if(editNote.bgColor){
+            editNote.bgColor = getBgColor(editNote.tag);
+        }
+
+        dispatch(updateNoteAsync(editNote));
+        setIsAddingNote(false);
+    }
+
+    const handleEdit = (id) => {
+
+        setIsAddingNote(true);
+        dispatch(findNoteAsync(id));
+    }
+
     const handelDelete = (id) => {
         
         dispatch(deleteNotesAsync(id))
     }
 
     useEffect(() => {
+        if(note){
+            setEditNote({
+                id : note.id,
+                title : note.title,
+                desc : note.desc,
+                tag : note.tag,
+                bgColor : note.bgColor
+            });
+        }
+    }, [note]);
+
+    useEffect(() => {
         dispatch(getNotesAsync())
-    }, [dispatch, newNote])
+    }, [dispatch, newNote]);
+
+    useEffect(() => {
+        if(editNote.id){
+            dispatch(getNotesAsync())
+        }
+    }, [dispatch, editNote.id, handleUpdatedNote]);
+
+    useEffect(() => {
+        if(!isSignIn){
+            navigate('signIn')
+        }
+    }, [isSignIn]);
 
     return (
         <>
@@ -104,14 +160,16 @@ const Dashboard = () => {
                                 </div>
                             )}
 
-                            {isAddingNote && (
+                            {
+                                note 
+                                ? 
                                 <div className="col-3">
-                                    <div className="note" style={{ backgroundColor: newNote.backgroundColor }} >
-                                        <input type="text" name="title" placeholder="Enter title" value={newNote.title} onChange={handleInput} />
-                                        <textarea name="desc" placeholder="Enter description" value={newNote.desc} onChange={handleInput} />
-                                        <label htmlFor="tag">Enter Tags :</label>
+                                    <div className="note" style={{ backgroundColor: editNote.backgroundColor }} >
+                                        <input type="text" name="title" placeholder="Enter title" value={editNote.title} onChange={handleEditInput} />
+                                        <textarea name="desc" placeholder="Enter description" value={editNote.desc} onChange={handleEditInput} />
+                                        <label htmlFor="tag">Tag :</label>
                                         <div className="select-wrapper">
-                                            <select name="tag" id="tag" value={newNote.tag} onChange={handleInput} >
+                                            <select name="tag" id="tag" value={editNote.tag} onChange={handleEditInput} >
                                                 <option value="Professional">Professional</option>
                                                 <option value="Growth & Health">Growth & Health</option>
                                                 <option value="Fun & Adventure">Fun & Adventure</option>
@@ -122,20 +180,46 @@ const Dashboard = () => {
                                             </select>
                                         </div>
                                         <div className="actions">
-                                            <button onClick={handleSubmit}>Save</button>
+                                            <button onClick={handleUpdatedNote}>Update</button>
                                             <button onClick={() => setIsAddingNote(false)}>Cancel</button>
                                         </div>
                                     </div>
                                 </div>
-                            )}
+                                :
+                                isAddingNote && (
+                                    <div className="col-3">
+                                        <div className="note" style={{ backgroundColor: newNote.backgroundColor }} >
+                                            <input type="text" name="title" placeholder="Enter title" value={newNote.title} onChange={handleInput} />
+                                            <textarea name="desc" placeholder="Enter description" value={newNote.desc} onChange={handleInput} />
+                                            <label htmlFor="tag">Tag :</label>
+                                            <div className="select-wrapper">
+                                                <select name="tag" id="tag" value={newNote.tag} onChange={handleInput} >
+                                                    <option value="Professional">Professional</option>
+                                                    <option value="Growth & Health">Growth & Health</option>
+                                                    <option value="Fun & Adventure">Fun & Adventure</option>
+                                                    <option value="Personal/Creative">Personal/Creative</option>
+                                                    <option value="Energy & Urgency">Energy & Urgency</option>
+                                                    <option value="Neutral">Neutral</option>
+                                                    <option value="Other">Other</option>
+                                                </select>
+                                            </div>
+                                            <div className="actions">
+                                                <button onClick={handleSubmit}>Save</button>
+                                                <button onClick={() => setIsAddingNote(false)}>Cancel</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            }
 
                             {   
                                 notes.map((note, index) => (
                                     <div className="col-3" key={index}>
                                         <div className={`note`} style={{backgroundColor : note.bgColor}}>
                                             <div className="note-header">
+                                                <h6 className='text-white'>{note.createAt}</h6>
                                                 <h2>{note.title}</h2>
-                                                <p>{note.createAt}</p>
+                                                <p className='text-white'>{note.desc}</p>
                                             </div>
                                             <p>{note.description}</p>
                                             <div className="tags">

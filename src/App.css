@@ -5,3 +5,22 @@ a{
 ul{
     padding: 0 !important;
 }
+.btn1{
+
+    display: block !important;
+    background-color: #FBCD32 !important;
+    padding: 10px 30px !important; 
+    border-radius: 10px !important;
+    font-size: 18px !important;
+    text-transform: capitalize !important;
+    font-weight: 800 !important;
+    font-family: serif !important;
+    color: white !important;
+    letter-spacing: .5px !important;
+    transition: all 0.2s ease-in-out;
+}
+.btn1:hover{
+    outline: 1px solid #FBCD32;
+    background-color: white !important;
+    color: #FBCD32 !important;
+}

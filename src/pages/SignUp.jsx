@@ -10,8 +10,7 @@ const SignUp = () => {
     const [signUpInput, setSignUpInput] = useState({
         uname : '',
         email : '',
-        pass : '',
-        cpass : ''
+        pass : ''
     });
 
     const [usernameError, setUsernameError] = useState(false);
@@ -75,7 +74,7 @@ const SignUp = () => {
   
             if(signUpInput.pass == signUpInput.cpass){
                 dispatch(signUpAsync(signUpInput));
-                navigate('/signIn')
+                navigate('/signIn');
             }
         }
     };

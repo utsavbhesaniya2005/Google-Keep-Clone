@@ -5,11 +5,12 @@ import Sidebar from "../components/Sidebar/Sidebar";
 import { useDispatch, useSelector } from 'react-redux';
 import { addNotesAsync, deleteNotesAsync, findNoteAsync, getNotesAsync, updateNoteAsync } from '../services/actions/note.action';
 import { useNavigate } from 'react-router';
+import { getUserId } from '../services/actions/AuthAction';
 
 const Dashboard = () => {
 
     const { notes, note } = useSelector(state => state.NoteReducer);
-    const { isSignIn } = useSelector(state => state.AuthReducer);
+    const { isSignIn, user } = useSelector(state => state.AuthReducer);
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -17,7 +18,6 @@ const Dashboard = () => {
     const [isAddingNote, setIsAddingNote] = useState(false);
 
     const [newNote, setNewNote] = useState({
-        id : '',
         title: '',
         desc: '',
         tag : 'Professional',
@@ -25,7 +25,6 @@ const Dashboard = () => {
     });
 
     const [editNote, setEditNote] = useState({
-        id : '',
         title: '',
         desc: '',
         tag : 'Professional',
@@ -117,6 +116,12 @@ const Dashboard = () => {
     }
 
     useEffect(() => {
+        if(!user){
+            navigate('/signIn');
+        }
+    }, [user]);
+
+    useEffect(() => {
         if(note){
             setEditNote({
                 id : note.id,
@@ -143,6 +148,10 @@ const Dashboard = () => {
             navigate('signIn')
         }
     }, [isSignIn]);
+
+    useEffect(() => {
+        dispatch(getUserId())
+    }, [])
 
     return (
         <>

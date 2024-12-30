@@ -69,6 +69,13 @@ const AuthReducer = (state = initialState, action) => {
                 isSignIn : false
             }
 
+        case 'GET_USERS' :
+
+            return {
+                ...state,
+                users : action.payload
+            }
+
         default : 
             return state    
 

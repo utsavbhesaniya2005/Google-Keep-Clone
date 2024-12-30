@@ -1,5 +1,5 @@
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, signOut } from "firebase/auth"
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, getDocs } from "firebase/firestore";
 import { auth, db, provider } from "../../firebaseConfig";
 
 export const userSignUpSuc = (users) => {
@@ -56,6 +56,35 @@ export const userLogout = () => {
     }
 }
 
+export const getUsersSuc = (users) => {
+
+    return{
+        type : 'GET_USERS',
+        payload : users
+    }
+}
+
+export const getUsers = () => {
+
+    return async dispatch => {
+
+        try{
+
+            let getData = (await getDocs(collection(db, 'users'))).docs.map(doc => ({...doc.data(), uid : doc.id }));
+
+            console.log("users id get", getData);
+            
+
+            dispatch(getUsersSuc(getData));
+
+
+        }catch(err){
+
+            console.log(err);
+            
+        }
+    }
+}
 
 export const signUpAsync = (users) => {
 
@@ -66,11 +95,20 @@ export const signUpAsync = (users) => {
             
             userCred.user.displayName = users.uname;
 
-            dispatch(userSignUpSuc(userCred.user));
+            console.log(userCred.user);
+
             
-            const { cpass, ...userWithoutPass } = users;
+            const signUpUser = {
+                uid : userCred.user.uid,
+                uname : userCred.user.displayName,
+                email : userCred.user.email
+            }
+
+            localStorage.setItem('loginId', JSON.stringify(signUpUser.uid));
             
-            addDoc(collection(db, "users"), userWithoutPass);
+            addDoc(collection(db, "users"), signUpUser);
+
+            dispatch(userSignUpSuc(signUpUser));
         
         })
         .catch((err) => {
@@ -94,7 +132,12 @@ export const signInAsync = (user) => {
         signInWithEmailAndPassword(auth, user.email, user.pass)
         .then((res) => {
 
-            dispatch(userSignInSuc(res.user()))
+            let signInUser = {
+                uid : res.user.uid,
+                email : res.user.email
+            };
+            localStorage.setItem('loginId', JSON.stringify(signInUser.uid));
+            dispatch(userSignInSuc(signInUser))
         })
         .catch((err) => {
 
@@ -127,6 +170,34 @@ export const signInWithGoogle = () => {
     }
 }
 
+export const getUserId = () => {
+
+    return async dispatch => {
+
+        try{
+
+            let getLoginId = JSON.parse(localStorage.getItem('loginId'));
+
+            let getUser = await getDocs(collection(db, 'users'));
+
+            let singleUser = getUser.docs.find((doc) => doc.data().uid === getLoginId)
+
+            if(singleUser){
+
+                let sUserData = singleUser.data();
+                console.log("USER",sUserData);
+                
+                dispatch(userSignInSuc(sUserData));
+            }
+
+        }catch(err){
+
+            console.log(err);
+            
+        }
+    }
+}
+
 export const userLogoutAsync = () => {
 
     return async dispatch => {
@@ -134,7 +205,8 @@ export const userLogoutAsync = () => {
         try{
             
             await signOut(auth);
-            dispatch(userLogout())
+            localStorage.removeItem('loginId');
+            dispatch(userLogout());
         }catch(err){
             
             console.log(err);

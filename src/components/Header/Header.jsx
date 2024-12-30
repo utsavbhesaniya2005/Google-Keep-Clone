@@ -70,7 +70,7 @@ const Header = ({ collapsed, toggleSidebar }) => {
 
     const handleLogout = () => {
         dispatch(userLogoutAsync());
-        navigate('/signIn');
+        // navigate('/signIn');
     }
 
     return (

@@ -3,7 +3,7 @@ import './SignIn.css';
 import { Link, useNavigate } from 'react-router';
 import { Button } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { resetSignInErr, signInAsync, signInWithGoogle } from '../services/actions/AuthAction';
+import { getUserId, getUsers, resetSignInErr, signInAsync, signInWithGoogle } from '../services/actions/AuthAction';
 
 const SignIn = () => {
 
@@ -81,10 +81,18 @@ const SignIn = () => {
     }
 
     useEffect(() => {
+        dispatch(getUserId())
+    }, [])
+
+    useEffect(() => {
         if (isSignIn) {
             navigate('/')
         }
     }, [isSignIn])
+
+    useEffect(() => {
+        dispatch(getUsers());
+    }, [])
 
     return (
         <>
